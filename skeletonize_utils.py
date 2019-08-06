@@ -11,7 +11,7 @@ import random
 #parameters
 NUMBER_OF_DILATIONS = 6
 MIN_CONTOUR_AREA = 800
-MAX_CONTOUR_AREA = 500000
+MAX_CONTOUR_AREA = 100000
 ADAPTATIVE_THRESHOLD_BLOCK_SIZE = 3
 ADAPTATIVE_THRESHOLD_C = 1
 CANNY_THRESHOLD = 50
@@ -51,6 +51,7 @@ def process_frame(img, resize_factor, distance_per_pixel,countour_adaptation):
 def image_with_sections_contounered_in_cicle(img,countour_adaptation):     
 
     circle_image_mask = create_internal_circle_mask(img)
+    inverted_circle_image_mask = np.logical_not(circle_image_mask)    
 
     img = cv2.multiply(img, circle_image_mask)
 
@@ -59,9 +60,10 @@ def image_with_sections_contounered_in_cicle(img,countour_adaptation):
     final_image = np.zeros([img.shape[0],img.shape[1],1], dtype=np.uint8)
     thresh_gaussian = cv2.adaptiveThreshold(final_sobely,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,ADAPTATIVE_THRESHOLD_BLOCK_SIZE,ADAPTATIVE_THRESHOLD_C)
     (contours,hierarchy) = cv2.findContours(thresh_gaussian,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
-    contours = [c for c in contours if cv2.contourArea(c) > MIN_CONTOUR_AREA] #remove smalls
-    #contours = [c for idx,c in enumerate(contours) if hierarchy[0][idx][3]>=0] #remove outters
-    final_contours = [contour_validation(img,idx,c,hierarchy) for idx,c in enumerate(contours)]
+
+    contours = [c for c in contours if cv2.contourArea(c) > MIN_CONTOUR_AREA ] #remove smalls
+       
+    final_contours = [contour_validation(img,idx,c,hierarchy,inverted_circle_image_mask) for idx,c in enumerate(contours)]
 
     inner_holes = [c[0] for c in final_contours if c[1]]
     cv2.drawContours(final_image, inner_holes, -1, (255), 1)
@@ -73,24 +75,27 @@ def image_with_sections_contounered_in_cicle(img,countour_adaptation):
     
     final_image_bit = skimage.img_as_bool(cv2.bitwise_not(final_image))    
     final_image_bit = np.bitwise_and(final_image_bit,circle_image_mask)
-    
-    #avoid inner contours by painting everyone in black
-    #final_image_bit_aux = np.uint8(skimage.img_as_bool(final_image))*255    
-    #thresh_gaussian = cv2.adaptiveThreshold( final_image_bit_aux,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,ADAPTATIVE_THRESHOLD_BLOCK_SIZE,ADAPTATIVE_THRESHOLD_C)
-    #(contours,_) = cv2.findContours(thresh_gaussian,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-    #contours = [c for c in contours if cv2.contourArea(c) > MIN_CONTOUR_AREA]
 
     return final_image_bit,inner_holes,final_image
 
 #http://opencvpython.blogspot.com/2012/06/contours-3-extraction.html
 #false if it is not "microscope background", if so it has more son contours because of the strange forms
-def contour_validation(img,idx,contour,hierarchy):
+def contour_validation(img,idx,contour,hierarchy,inverted_circle_image_mask):
 
     validated = True
     area = cv2.contourArea(contour)
 
-    if(cv2.contourArea(contour) < MIN_CONTOUR_AREA):
+    if(area < MIN_CONTOUR_AREA):
         validated = False    
+    
+    if(area > MAX_CONTOUR_AREA):
+        validated = False    
+
+    #out of the circle
+    for p in contour:
+        if(inverted_circle_image_mask[p[0][1],p[0][0]]>0):           
+            validated = False    
+            break
 
     number_of_sons = len([h for h in hierarchy[0] if h[3]==idx ])
 
@@ -339,7 +344,7 @@ def paint_areas(img,contours):
         cx = int(m['m10']/divisor)
         cy = int(m['m01']/divisor)    
            
-        cv2.putText(img, "{:.1f}".format(cv2.contourArea(c)),(cx,cy ), cv2.FONT_HERSHEY_SIMPLEX,1, color, 1)
+        cv2.putText(img, "{:.1f}".format(cv2.contourArea(c)),(cx,cy ), cv2.FONT_HERSHEY_SIMPLEX,1, (255,255,255), 1)
 
 def euclidean_distance(coordinate1, coordinate2):
     return pow(pow(coordinate1[0] - coordinate2[0], 2) + pow(coordinate1[1] - coordinate2[1], 2), .5)

@@ -32,9 +32,9 @@ with open('analysis\\'+file_name+'_result.csv', 'w') as csvfile:
     for img in tiff:
         print(index)
 
-        #if(index!=40):
-        #    index=index+1
-        #    continue
+        if(index%10!=0):
+            index=index+1
+            continue
 
         max_region_factor = 1+(0.5*int(index/10))
         print('frame:'+str(index) + ' factor:'+str(max_region_factor))
