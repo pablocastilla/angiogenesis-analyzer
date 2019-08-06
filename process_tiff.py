@@ -30,15 +30,13 @@ with open('analysis\\'+file_name+'_result.csv', 'w') as csvfile:
 
     index=0
     
-    for img in tiff:
-        print(index)
-
+    for img in tiff:       
+        print('frame:'+str(index) )
+        
         #if(index%10!=0):
         #    index=index+1
-        #    continue
-
+        #    continue       
         
-        print('frame:'+str(index) )
         result = sku.process_frame(img,RESIZE_FACTOR,DISTANCE_PER_PIXEL)
       
         if(True):

@@ -10,14 +10,14 @@ import random
 import math
 
 #parameters
-NUMBER_OF_DILATIONS = 3
+NUMBER_OF_DILATIONS = 4
 MIN_CONTOUR_AREA = 800
 MAX_CONTOUR_AREA = 500000
 ADAPTATIVE_THRESHOLD_BLOCK_SIZE = 3
 ADAPTATIVE_THRESHOLD_C = 1
 CANNY_THRESHOLD = 50
 SECTIONS_FOR_FINDING_BRIGHTEDGES=7
-VARIANCE_IN_COLORS_THRESHOLD = 14
+VARIANCE_IN_COLORS_THRESHOLD = 18
 
 #process a single frame
 def process_frame(img, resize_factor, distance_per_pixel):
@@ -91,6 +91,7 @@ def contour_validation(img,idx,contour,inverted_circle_image_mask):
     
     if(area > MAX_CONTOUR_AREA):
         validated = False
+        return (contour,validated)
 
     #out of the circle
     for p in contour:
