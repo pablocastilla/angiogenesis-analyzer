@@ -7,24 +7,25 @@ import skimage.io as io
 import matplotlib.pyplot as plt
 from statistics import mean 
 import random
+import math
 
 #parameters
-NUMBER_OF_DILATIONS = 6
+NUMBER_OF_DILATIONS = 3
 MIN_CONTOUR_AREA = 800
-MAX_CONTOUR_AREA = 100000
+MAX_CONTOUR_AREA = 500000
 ADAPTATIVE_THRESHOLD_BLOCK_SIZE = 3
 ADAPTATIVE_THRESHOLD_C = 1
 CANNY_THRESHOLD = 50
 SECTIONS_FOR_FINDING_BRIGHTEDGES=7
-SON_PER_AREA_RATIO_THRESHOLD = 1/50
+VARIANCE_IN_COLORS_THRESHOLD = 14
 
 #process a single frame
-def process_frame(img, resize_factor, distance_per_pixel,countour_adaptation):
+def process_frame(img, resize_factor, distance_per_pixel):
     image_width=int(img.shape[1]/resize_factor)
     image_height=int(img.shape[0]/resize_factor)
     img = cv2.resize(img,(image_width,image_height))
 
-    final_image_bit,final_contours,final_image = image_with_sections_contounered_in_cicle(img,countour_adaptation)
+    final_image_bit,final_contours,final_image = image_with_sections_contounered_in_cicle(img)
 
     skeleton = skeletonize(final_image_bit)
 
@@ -48,7 +49,7 @@ def process_frame(img, resize_factor, distance_per_pixel,countour_adaptation):
 
     
 #takes the image, finds the circle containing the experiment and the contours
-def image_with_sections_contounered_in_cicle(img,countour_adaptation):     
+def image_with_sections_contounered_in_cicle(img):     
 
     circle_image_mask = create_internal_circle_mask(img)
     inverted_circle_image_mask = np.logical_not(circle_image_mask)    
@@ -63,7 +64,7 @@ def image_with_sections_contounered_in_cicle(img,countour_adaptation):
 
     contours = [c for c in contours if cv2.contourArea(c) > MIN_CONTOUR_AREA ] #remove smalls
        
-    final_contours = [contour_validation(img,idx,c,hierarchy,inverted_circle_image_mask) for idx,c in enumerate(contours)]
+    final_contours = [contour_validation(img,idx,c,inverted_circle_image_mask) for idx,c in enumerate(contours)]
 
     inner_holes = [c[0] for c in final_contours if c[1]]
     cv2.drawContours(final_image, inner_holes, -1, (255), 1)
@@ -80,30 +81,44 @@ def image_with_sections_contounered_in_cicle(img,countour_adaptation):
 
 #http://opencvpython.blogspot.com/2012/06/contours-3-extraction.html
 #false if it is not "microscope background", if so it has more son contours because of the strange forms
-def contour_validation(img,idx,contour,hierarchy,inverted_circle_image_mask):
+def contour_validation(img,idx,contour,inverted_circle_image_mask):
 
     validated = True
     area = cv2.contourArea(contour)
 
     if(area < MIN_CONTOUR_AREA):
-        validated = False    
+        validated = False
     
     if(area > MAX_CONTOUR_AREA):
-        validated = False    
+        validated = False
 
     #out of the circle
     for p in contour:
         if(inverted_circle_image_mask[p[0][1],p[0][0]]>0):           
             validated = False    
-            break
+            
 
-    number_of_sons = len([h for h in hierarchy[0] if h[3]==idx ])
+    x,y,width,height = cv2.boundingRect(contour)
+    colors = []
 
-    sons_per_area_ratio = number_of_sons/(area+1)
+    for w in range(width):
+        for h in range(height):
+            y_aux = y+h
+            x_aux = x+w
+            if cv2.pointPolygonTest(contour,(x_aux,y_aux),False)>0:
+                colors.append(img[y_aux,x_aux])
 
-    if(sons_per_area_ratio>SON_PER_AREA_RATIO_THRESHOLD):
-        validated = False
+    variance = math.sqrt(np.var(colors))
 
+    print('variance: '+str(variance))
+    print('mean: '+str(np.mean(colors)))
+    print('area: '+str(area))
+    print('x0:'+str(x)+',y0:'+str(y)+',x1:'+str(x+width)+',y1:'+str(y+height))
+
+    if(variance>VARIANCE_IN_COLORS_THRESHOLD):       
+        print('discarted!!')
+        validated = False  
+        
     return (contour,validated)
 
 #finds a bright point in each side of the image in the middle row and creates a circle max with them

@@ -29,16 +29,17 @@ with open('analysis\\'+file_name+'_result.csv', 'w') as csvfile:
     filewriter.writerow(['Frame', 'number_of_joints','number_of_meshes','total_meshes_area','average_meshes_area','number_of_segments','total_segments_length'])
 
     index=0
+    
     for img in tiff:
         print(index)
 
-        if(index%10!=0):
-            index=index+1
-            continue
+        #if(index%10!=0):
+        #    index=index+1
+        #    continue
 
-        max_region_factor = 1+(0.5*int(index/10))
-        print('frame:'+str(index) + ' factor:'+str(max_region_factor))
-        result = sku.process_frame(img,RESIZE_FACTOR,DISTANCE_PER_PIXEL,max_region_factor)
+        
+        print('frame:'+str(index) )
+        result = sku.process_frame(img,RESIZE_FACTOR,DISTANCE_PER_PIXEL)
       
         if(True):
             
