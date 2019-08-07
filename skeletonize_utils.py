@@ -112,7 +112,8 @@ def contour_validation(img,idx,contour,inverted_circle_image_mask):
     variance = math.sqrt(np.var(colors))
 
     print('variance: '+str(variance))
-    print('mean: '+str(np.mean(colors)))
+    if(len(colors)>0):
+        print('mean: '+str(np.mean(colors)))
     print('area: '+str(area))
     print('x0:'+str(x)+',y0:'+str(y)+',x1:'+str(x+width)+',y1:'+str(y+height))
 

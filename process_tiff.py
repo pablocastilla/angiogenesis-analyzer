@@ -18,6 +18,8 @@ DISTANCE_PER_PIXEL = 646.35
 #args = vars(ap.parse_args())
 
 file_name = '28052019_angioE02.tif'
+#file_name = '28052019_angioH04.tif'
+
 tiff = tc.opentiff('videos\\'+file_name)
 
 log_folder_name='analysis\\'+file_name+'_imagelog'
