@@ -10,7 +10,7 @@ import random
 import math
 
 #parameters
-NUMBER_OF_DILATIONS = 4
+NUMBER_OF_DILATIONS = 5
 MIN_CONTOUR_AREA = 800
 MAX_CONTOUR_AREA = 500000
 ADAPTATIVE_THRESHOLD_BLOCK_SIZE = 3
@@ -25,12 +25,12 @@ def process_frame(img, resize_factor, distance_per_pixel):
     image_height=int(img.shape[0]/resize_factor)
     img = cv2.resize(img,(image_width,image_height))
 
-    final_image_bit,final_contours,final_image = image_with_sections_contounered_in_cicle(img)
+    final_image_bit,final_contours,final_image_meshes = image_with_sections_contounered_in_cicle(img)
 
     skeleton = skeletonize(final_image_bit)
 
-    final_joints =  find_joints(skeleton)    
-    final_distances = find_distances(skeleton,final_joints)
+    final_joints =  find_joints(skeleton,final_image_meshes)    
+    final_distances = find_distances(skeleton,final_joints,final_image_meshes)
     final_meshes = find_meshes(final_contours)
 
     paint_graph(img,final_distances,distance_per_pixel)
@@ -44,7 +44,7 @@ def process_frame(img, resize_factor, distance_per_pixel):
     number_of_segments = len(final_distances)
     total_segments_length = sum([item[3] for item in final_distances]) 
 
-    return (img,number_of_joints,number_of_meshes,total_meshes_area,average_meshes_area,number_of_segments,total_segments_length, final_image)
+    return (img,number_of_joints,number_of_meshes,total_meshes_area,average_meshes_area,number_of_segments,total_segments_length, final_image_meshes)
 
 
     
@@ -170,9 +170,9 @@ def skeletonize(img):
     return skeleton
 
 #find the joints in a skeleton looking for pixels that are sorounded by 3 or more pixels
-def find_joints(img):
+def find_joints(skeleton_image,final_image_meshes):
     # Find row and column locations that are non-zero
-    (rows,cols) = np.nonzero(img)
+    (rows,cols) = np.nonzero(skeleton_image)
 
     # Initialize empty list of co-ordinates
     skel_coords = []
@@ -180,7 +180,7 @@ def find_joints(img):
     # For each non-zero pixel...
     for (r,c) in zip(rows,cols):
 
-        number_of_neighbours = len(list(find_neighbours(img, (r,c),[])))
+        number_of_neighbours = len(list(find_neighbours(skeleton_image, (r,c),[],final_image_meshes)))
 
         # If the number of non-zero locations equals 2, add this to 
         # our list of co-ordinates
@@ -197,8 +197,41 @@ def find_joints(img):
 
     return list(((x[0],x[1]) for x in skel_coords if x not in items_to_remove))
   
+#find the distantes of the joints, return a matrix of [jointA, jointB,[pixelesbetweenthem], distance in pixel]
+def find_distances(skeleton, joints,final_image_meshes):    
+    distances = []
+           
+    for j in joints:              
+        #look for next points
+        next_joints_points = find_neighbours(skeleton, j, [],final_image_meshes)
+        
+        for first_point_in_branch in next_joints_points:
+            this_branch_points=[j]
+            next_point = first_point_in_branch
+            final_point = None
+            joint_reached = False
+            distance_in_pixels = 0
+
+            while(len(find_neighbours(skeleton,next_point,this_branch_points,final_image_meshes))>0 and not joint_reached):
+                old_next_point = next_point
+                next_point = find_neighbours(skeleton,next_point,this_branch_points,final_image_meshes)[0]
+                this_branch_points.append(old_next_point)               
+                    
+                if next_point in joints:
+                    joint_reached = True
+                
+                distance_in_pixels = distance_in_pixels + euclidean_distance(old_next_point,next_point)
+                final_point = next_point
+               
+
+            #not add if the oposite relation already exists       
+            if(final_point is not None and not any(x[1] == j and x[0]==final_point for x in distances)):
+                distances.append([j,final_point,this_branch_points,distance_in_pixels])                   
+                    
+    return distances
+
 #find the neighbours of a pixel, neartests (not diagonal) have priority
-def find_neighbours(skeleton, point, excluded_points):
+def find_neighbours(skeleton, point, excluded_points,image_meshes):
     neighbours = []
     point_y,point_x=point
    
@@ -260,7 +293,7 @@ def find_neighbours(skeleton, point, excluded_points):
     if(evaluate_neighbour(skeleton, point, offset_y, offset_x) and not avoid_top and not avoid_left):
         neighbours.append((point_y+offset_y,point_x+offset_x))
         
-    return list((x for x in neighbours if x not in excluded_points))
+    return list((x for x in neighbours if x not in excluded_points and image_meshes[x[0],x[1]]==0))
 
 def evaluate_neighbour(skeleton, point, offset_y,offset_x):
     image_width=int(skeleton.shape[1])
@@ -272,38 +305,7 @@ def evaluate_neighbour(skeleton, point, offset_y,offset_x):
     else:
         return False
 
-#find the distantes of the joints, return a matrix of [jointA, jointB,[pixelesbetweenthem], distance in pixel]
-def find_distances(skeleton, joints):    
-    distances = []
-           
-    for j in joints:              
-        #look for next points
-        next_joints_points = find_neighbours(skeleton, j, [])
-        
-        for first_point_in_branch in next_joints_points:
-            this_branch_points=[j]
-            next_point = first_point_in_branch
-            final_point = None
-            joint_reached = False
-            distance_in_pixels = 0
 
-            while(len(find_neighbours(skeleton,next_point,this_branch_points))>0 and not joint_reached):
-                old_next_point = next_point
-                next_point = find_neighbours(skeleton,next_point,this_branch_points)[0]
-                this_branch_points.append(old_next_point)               
-                    
-                if next_point in joints:
-                    joint_reached = True
-                
-                distance_in_pixels = distance_in_pixels + euclidean_distance(old_next_point,next_point)
-                final_point = next_point
-               
-
-            #not add if the oposite relation already exists       
-            if(final_point is not None and not any(x[1] == j and x[0]==final_point for x in distances)):
-                distances.append([j,final_point,this_branch_points,distance_in_pixels])                   
-                    
-    return distances
 
 def find_meshes(final_contours):
     meshes = []
