@@ -10,9 +10,9 @@ import random
 import math
 
 #parameters
-NUMBER_OF_DILATIONS = 5
+NUMBER_OF_DILATIONS = 6
 MIN_CONTOUR_AREA = 800
-MAX_CONTOUR_AREA = 500000
+MAX_CONTOUR_AREA = 100000
 ADAPTATIVE_THRESHOLD_BLOCK_SIZE = 3
 ADAPTATIVE_THRESHOLD_C = 1
 CANNY_THRESHOLD = 50
@@ -33,11 +33,10 @@ def process_frame(img, resize_factor, distance_per_pixel):
     final_distances = find_distances(skeleton,final_joints,final_image_meshes)
     final_meshes = find_meshes(final_contours)
 
-    paint_graph(img,final_distances,distance_per_pixel)
     paint_areas(img,final_contours)
+    paint_graph(img,final_distances,distance_per_pixel)    
 
-    number_of_joints = len(final_joints)    
-    
+    number_of_joints = len(final_joints)        
     number_of_meshes = len(final_meshes)
     total_meshes_area = sum(final_meshes)
     average_meshes_area = mean(final_meshes)
@@ -87,16 +86,15 @@ def contour_validation(img,idx,contour,inverted_circle_image_mask):
     area = cv2.contourArea(contour)
 
     if(area < MIN_CONTOUR_AREA):
-        validated = False
+        return (contour,False)
     
-    if(area > MAX_CONTOUR_AREA):
-        validated = False
-        return (contour,validated)
+    if(area > MAX_CONTOUR_AREA):        
+        return (contour,False)
 
     #out of the circle
     for p in contour:
         if(inverted_circle_image_mask[p[0][1],p[0][0]]>0):           
-            validated = False    
+            return (contour,False)    
             
 
     x,y,width,height = cv2.boundingRect(contour)
@@ -111,14 +109,14 @@ def contour_validation(img,idx,contour,inverted_circle_image_mask):
 
     variance = math.sqrt(np.var(colors))
 
-    print('variance: '+str(variance))
-    if(len(colors)>0):
-        print('mean: '+str(np.mean(colors)))
-    print('area: '+str(area))
-    print('x0:'+str(x)+',y0:'+str(y)+',x1:'+str(x+width)+',y1:'+str(y+height))
+    #print('variance: '+str(variance))
+    #if(len(colors)>0):
+    #    print('mean: '+str(np.mean(colors)))
+    #print('area: '+str(area))
+    #print('x0:'+str(x)+',y0:'+str(y)+',x1:'+str(x+width)+',y1:'+str(y+height))
 
     if(variance>VARIANCE_IN_COLORS_THRESHOLD):       
-        print('discarted!!')
+        #print('discarted!!')
         validated = False  
         
     return (contour,validated)
@@ -243,64 +241,67 @@ def find_neighbours(skeleton, point, excluded_points,image_meshes):
     #find top 
     offset_y=-1
     offset_x=0
-    if(evaluate_neighbour(skeleton, point, offset_y, offset_x)):
+    if(evaluate_neighbour(skeleton, point, offset_y, offset_x, image_meshes)):
         neighbours.append((point_y+offset_y,point_x+offset_x))
         avoid_top = True
         
     #find left
     offset_y=0
     offset_x=-1
-    if(evaluate_neighbour(skeleton, point, offset_y, offset_x)):
+    if(evaluate_neighbour(skeleton, point, offset_y, offset_x, image_meshes)):
         neighbours.append((point_y+offset_y,point_x+offset_x))
         avoid_left = True
         
     #find right
     offset_y=0
     offset_x=1
-    if(evaluate_neighbour(skeleton, point, offset_y, offset_x)):
+    if(evaluate_neighbour(skeleton, point, offset_y, offset_x, image_meshes)):
         neighbours.append((point_y+offset_y,point_x+offset_x))
         avoid_right = True
                    
     #find botton
     offset_y=1
     offset_x=0
-    if(evaluate_neighbour(skeleton, point, offset_y, offset_x)):
+    if(evaluate_neighbour(skeleton, point, offset_y, offset_x, image_meshes)):
         neighbours.append((point_y+offset_y,point_x+offset_x))
         avoid_botton = True
         
     #find botton left
     offset_y=1
     offset_x=-1
-    if(evaluate_neighbour(skeleton, point, offset_y, offset_x) and not avoid_botton and not avoid_left):
+    if(evaluate_neighbour(skeleton, point, offset_y, offset_x, image_meshes) and not avoid_botton and not avoid_left):
         neighbours.append((point_y+offset_y,point_x+offset_x))
     
     #find botton right
     offset_y=1
     offset_x=1
-    if(evaluate_neighbour(skeleton, point, offset_y, offset_x) and not avoid_botton and not avoid_right):
+    if(evaluate_neighbour(skeleton, point, offset_y, offset_x, image_meshes) and not avoid_botton and not avoid_right):
         neighbours.append((point_y+offset_y,point_x+offset_x))
 
     #find top right
     offset_y=-1
     offset_x=1
-    if(evaluate_neighbour(skeleton, point, offset_y, offset_x) and not avoid_top and not avoid_right):
+    if(evaluate_neighbour(skeleton, point, offset_y, offset_x,image_meshes) and not avoid_top and not avoid_right):
         neighbours.append((point_y+offset_y,point_x+offset_x))
    
         
     #find top left
     offset_y=-1
     offset_x=-1
-    if(evaluate_neighbour(skeleton, point, offset_y, offset_x) and not avoid_top and not avoid_left):
+    if(evaluate_neighbour(skeleton, point, offset_y, offset_x, image_meshes) and not avoid_top and not avoid_left):
         neighbours.append((point_y+offset_y,point_x+offset_x))
         
-    return list((x for x in neighbours if x not in excluded_points and image_meshes[x[0],x[1]]==0))
+    return list((x for x in neighbours if x not in excluded_points))
 
-def evaluate_neighbour(skeleton, point, offset_y,offset_x):
+def evaluate_neighbour(skeleton, point, offset_y,offset_x, image_meshes):
     image_width=int(skeleton.shape[1])
     image_height=int(skeleton.shape[0])
     point_y,point_x=point    
+
+    next_point_y=point_y+offset_y
+    next_point_x=point_x+offset_x
     
-    if((0 <= point_y+offset_y < image_height) and (0 <= point_x+offset_x < image_width) and skeleton[point_y+offset_y,point_x+offset_x]):
+    if((0 <= next_point_y < image_height) and (0 <= next_point_x < image_width) and skeleton[next_point_y,next_point_x] and image_meshes[next_point_y,next_point_x]==0 ):
         return True
     else:
         return False
