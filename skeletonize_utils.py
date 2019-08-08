@@ -39,7 +39,8 @@ def process_frame(img, resize_factor, distance_per_pixel):
     number_of_joints = len(final_joints)        
     number_of_meshes = len(final_meshes)
     total_meshes_area = sum(final_meshes)
-    average_meshes_area = mean(final_meshes)
+    if(len(final_meshes)>0):
+        average_meshes_area = mean(final_meshes)
     number_of_segments = len(final_distances)
     total_segments_length = sum([item[3] for item in final_distances]) 
 
