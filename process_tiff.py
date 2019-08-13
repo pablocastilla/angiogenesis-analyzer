@@ -1,4 +1,3 @@
-#pip install TiffCapture
 import tiffcapture as tc
 import skeletonize_utils as sku
 import cv2 as cv2
@@ -8,6 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import skimage as skimage
 import time
+from PIL import Image
+from PIL import BmpImagePlugin,GifImagePlugin,Jpeg2KImagePlugin,JpegImagePlugin,PngImagePlugin,TiffImagePlugin,WmfImagePlugin # added this line for pyinstaller
+
 
 
 RESIZE_FACTOR = 5

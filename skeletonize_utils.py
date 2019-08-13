@@ -6,7 +6,6 @@ import skimage as skimage
 import skimage.io as io
 import matplotlib.pyplot as plt
 from statistics import mean 
-import random
 import math
 
 #parameters
@@ -352,7 +351,7 @@ def paint_areas(img,contours):
         box = cv2.boxPoints(box)
         box = np.array(box, dtype="int")    
 
-        random_color = random.randint(220, 255)
+        random_color = 255
         
         color = (random_color,random_color,random_color)
 
