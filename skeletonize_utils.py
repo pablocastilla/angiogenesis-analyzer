@@ -4,7 +4,6 @@ import skimage.draw as draw
 import cv2 as cv2
 import skimage as skimage
 import skimage.io as io
-import matplotlib.pyplot as plt
 from statistics import mean 
 import math
 
@@ -60,7 +59,7 @@ def image_with_sections_contounered_in_cicle(img):
     final_sobely = np.uint8(edges)
     final_image = np.zeros([img.shape[0],img.shape[1],1], dtype=np.uint8)
     thresh_gaussian = cv2.adaptiveThreshold(final_sobely,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,ADAPTATIVE_THRESHOLD_BLOCK_SIZE,ADAPTATIVE_THRESHOLD_C)
-    (contours,hierarchy) = cv2.findContours(thresh_gaussian,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+    (contours,_) = cv2.findContours(thresh_gaussian,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
 
     contours = [c for c in contours if cv2.contourArea(c) > MIN_CONTOUR_AREA ] #remove smalls
        
@@ -110,14 +109,7 @@ def contour_validation(img,idx,contour,inverted_circle_image_mask):
 
     variance = math.sqrt(np.var(colors))
 
-    #print('variance: '+str(variance))
-    #if(len(colors)>0):
-    #    print('mean: '+str(np.mean(colors)))
-    #print('area: '+str(area))
-    #print('x0:'+str(x)+',y0:'+str(y)+',x1:'+str(x+width)+',y1:'+str(y+height))
-
     if(variance>VARIANCE_IN_COLORS_THRESHOLD):       
-        #print('discarted!!')
         validated = False  
         
     return (contour,validated)
@@ -325,28 +317,12 @@ def paint_graph(img,graph,distance_per_pixel):
         for p in line[2]:
             img[p[0],p[1]] = 0
 
-       
-        #middle_y = int((line[0][0]+line[1][0])/2)
-        #middle_x = int((line[0][1]+line[1][1])/2) -100 #trying to move text size to the left in order to center it
-        #cv2.putText(img, "{:.1f}".format(len(line[2])),(int(middle_x), int(middle_y)), cv2.FONT_HERSHEY_SIMPLEX,1, (0, 255, 255), 3)
-
-        #draw a circle in each node
         cv2.circle(img, (line[0][1],line[0][0]), 5, (0, 0, 0))
     
 
 def paint_areas(img,contours):    
     
-    for c in contours:              
-        br = cv2.boundingRect(c)
-        
-        xMin=0
-        yMin=0
-        xMax=img.shape[0]
-        yMax=img.shape[1]
-    
-        #if( br[0] <= xMin or br[1] <= yMin or (br[0]+br[2]) >= xMax or  (br[1]+br[3]) >= yMax):
-        #        continue
-            
+    for c in contours:                                 
         box = cv2.minAreaRect(c)
         box = cv2.boxPoints(box)
         box = np.array(box, dtype="int")    

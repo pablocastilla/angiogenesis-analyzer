@@ -3,24 +3,20 @@ import skeletonize_utils as sku
 import cv2 as cv2
 import csv
 import os
-import matplotlib.pyplot as plt
 import numpy as np
 import skimage as skimage
 import time
 from PIL import Image
 from PIL import BmpImagePlugin,GifImagePlugin,Jpeg2KImagePlugin,JpegImagePlugin,PngImagePlugin,TiffImagePlugin,WmfImagePlugin # added this line for pyinstaller
 
-
-
 RESIZE_FACTOR = 5
 DISTANCE_PER_PIXEL = 646.35
 
-#ap = argparse.ArgumentParser()
-#ap.add_argument("-i", "--tiff", required=True,	help="path to input dataset of images")
+file_names = []
 
-#args = vars(ap.parse_args())
-
-file_names = ['28052019_angioE02.tif','28052019_angioH04.tif']
+for file in os.listdir("./videos"):
+    if file.endswith(".tif"):
+        file_names.append(file)
 
 for file_name in file_names:
 
