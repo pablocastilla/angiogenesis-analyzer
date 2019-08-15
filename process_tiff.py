@@ -14,10 +14,21 @@ DISTANCE_PER_PIXEL = 646.35
 
 file_names = []
 
+print('starting' )
+
+#create videos and analysis folder
+if not os.path.exists('videos'):
+    os.mkdir('videos')
+
+if not os.path.exists('analysis'):
+    os.mkdir('analysis')
+
+#look for videos (tifs)
 for file in os.listdir("./videos"):
     if file.endswith(".tif"):
         file_names.append(file)
 
+#for each tif file create the result folder and csv
 for file_name in file_names:
 
     tiff = tc.opentiff('videos\\'+file_name)
@@ -31,15 +42,11 @@ for file_name in file_names:
         filewriter.writerow(['Frame', 'number_of_joints','number_of_meshes','total_meshes_area','average_meshes_area','number_of_segments','total_segments_length'])
 
         index=0
-
+        #for each frame
         for img in tiff:       
             start_time = time.time()
             print('start frame:'+str(index) )
-            
-
-            #if(index%10!=0):
-            #    index=index+1
-            #    continue       
+                
 
             result = sku.process_frame(img,RESIZE_FACTOR,DISTANCE_PER_PIXEL)
                    
@@ -53,3 +60,5 @@ for file_name in file_names:
             
             elapsed_time = time.time() - start_time
             print ('end frame:'+str(int(elapsed_time))+' seconds')
+
+print('end' )
