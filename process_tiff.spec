@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['process_tiff.py'],
-             pathex=['C:\\code\\angiogenesis-analyzer'],
+             pathex=['c:\\code\\angiogenesis-analyzer'],
              binaries=[],
              datas=[],
              hiddenimports=[],

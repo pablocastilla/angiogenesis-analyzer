@@ -1,5 +1,7 @@
 # Angiogenesis analyzer
-This project is done for the Biomedicine, Biotechnology and Public Healthcare of the University of Cádiz. They idea is to make easier to process the microscopic images of their experiments related to angiogenesis.
+This project is done for the Biomedicine, Biotechnology and Public Healthcare of the University of Cádiz. They idea is to automatize the processing of the microscopic images of their experiments related to angiogenesis.
+
+Do you want to automate some image analyses? Contact me through [LinkedIn](https://www.linkedin.com/in/pablocastilla) and let's talk.
 
 ## Use the program
 1. Go to [releases](https://github.com/pablocastilla/angiogenesis-analyzer/releases/) and grab the latest one. 
