@@ -10,7 +10,8 @@ from PIL import Image
 from PIL import BmpImagePlugin,GifImagePlugin,Jpeg2KImagePlugin,JpegImagePlugin,PngImagePlugin,TiffImagePlugin,WmfImagePlugin # added this line for pyinstaller
 
 RESIZE_FACTOR = 5
-DISTANCE_PER_PIXEL = 646.35
+REAL_DISTANCE_X =  3805708.8
+REAL_DISTANCE_Y = 3044954.85
 
 file_names = []
 
@@ -39,7 +40,8 @@ for file_name in file_names:
 
     with open('analyses\\'+file_name+'_result.csv', 'w') as csvfile:
         filewriter = csv.writer(csvfile, delimiter=';',lineterminator='\n')
-        filewriter.writerow(['Frame', 'number_of_joints','number_of_meshes','total_meshes_area','average_meshes_area','number_of_segments','total_segments_length'])
+        filewriter.writerow(['frame', 'number_of_joints','number_of_meshes','total_meshes_area_pixels','total_meshes_area_nm','average_meshes_area_pixels','average_meshes_area_nm',
+                                'number_of_segments','total_segments_length_pixels','total_segments_length_nm'])
 
         index=0
         #for each frame
@@ -48,13 +50,13 @@ for file_name in file_names:
             print('start frame:'+str(index) )
                 
 
-            result = sku.process_frame(img,RESIZE_FACTOR,DISTANCE_PER_PIXEL)
+            result = sku.process_frame(img,RESIZE_FACTOR,REAL_DISTANCE_X,REAL_DISTANCE_Y)
                    
             cv2.imwrite(log_folder_name+'\\frame'+str(index)+'_processed.jpg',result[0])                 
-            final_image_bit_aux = np.uint8(skimage.img_as_bool(result[7]))*255
+            final_image_bit_aux = np.uint8(skimage.img_as_bool(result[10]))*255
             cv2.imwrite(log_folder_name+'\\frame'+str(index)+'_processed_bits.jpg',final_image_bit_aux)
 
-            filewriter.writerow([index, int(result[1]),int(result[2]), int(result[3]),int(result[4]),int(result[5]),int(result[6])])
+            filewriter.writerow([index, int(result[1]),int(result[2]), int(result[3]),int(result[4]),int(result[5]),int(result[6]),int(result[7]),int(result[8]),int(result[9])])
 
             index=index+1
             

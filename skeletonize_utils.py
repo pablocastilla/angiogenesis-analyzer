@@ -9,41 +9,50 @@ import math
 
 #parameters
 NUMBER_OF_DILATIONS = 6
-MIN_CONTOUR_AREA = 800
+MIN_CONTOUR_AREA = 1000
 MAX_CONTOUR_AREA = 100000
 ADAPTATIVE_THRESHOLD_BLOCK_SIZE = 3
 ADAPTATIVE_THRESHOLD_C = 1
 CANNY_THRESHOLD = 50
 SECTIONS_FOR_FINDING_BRIGHTEDGES=7
-VARIANCE_IN_COLORS_THRESHOLD = 18
+VARIANCE_IN_COLORS_THRESHOLD = 17
 
 #process a single frame
-def process_frame(img, resize_factor, distance_per_pixel):
+def process_frame(img, resize_factor, real_distance_x, real_distance_y):
     image_width=int(img.shape[1]/resize_factor)
     image_height=int(img.shape[0]/resize_factor)
     img = cv2.resize(img,(image_width,image_height))
+
+    #each pixel size length
+    real_distance_x_per_pixel = real_distance_x / image_width
+    real_distance_y_per_pixel = real_distance_y / image_height
+    pixel_surface = real_distance_x_per_pixel * real_distance_y_per_pixel
 
     final_image_bit,final_contours,final_image_meshes = image_with_sections_contounered_in_cicle(img)
 
     skeleton = skeletonize(final_image_bit)
 
     final_joints =  find_joints(skeleton,final_image_meshes)    
-    final_distances = find_distances(skeleton,final_joints,final_image_meshes)
+    final_distances = find_distances(skeleton,final_joints,final_image_meshes,real_distance_x, real_distance_y)
     final_meshes = find_meshes(final_contours)
-
+    img = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
     paint_areas(img,final_contours)
-    paint_graph(img,final_distances,distance_per_pixel)    
+    paint_graph(img,final_distances)    
 
     number_of_joints = len(final_joints)        
     number_of_meshes = len(final_meshes)
-    total_meshes_area = sum(final_meshes)
-    average_meshes_area = 0
+    total_meshes_area_pixels = sum(final_meshes)
+    total_meshes_area_nm = total_meshes_area_pixels*pixel_surface
+    average_meshes_area_pixels = 0
     if(len(final_meshes)>0):
-        average_meshes_area = mean(final_meshes)
-    number_of_segments = len(final_distances)
-    total_segments_length = sum([item[3] for item in final_distances]) 
+        average_meshes_area_pixels = mean(final_meshes)
 
-    return (img,number_of_joints,number_of_meshes,total_meshes_area,average_meshes_area,number_of_segments,total_segments_length, final_image_meshes)
+    average_meshes_area_nm = average_meshes_area_pixels*pixel_surface
+    number_of_segments = len(final_distances)
+    total_segments_length_in_pixels = sum([item[3] for item in final_distances]) 
+    total_segments_length_in_nm = sum([item[4] for item in final_distances]) 
+
+    return (img,number_of_joints,number_of_meshes,total_meshes_area_pixels,total_meshes_area_nm,average_meshes_area_pixels,average_meshes_area_nm, number_of_segments, total_segments_length_in_pixels, total_segments_length_in_nm, final_image_meshes)
 
 
     
@@ -182,14 +191,14 @@ def find_joints(skeleton_image,final_image_meshes):
 
     for i in range(len(skel_coords)):
         for j in range(len(skel_coords)):
-            if(i<j and euclidean_distance(skel_coords[i],skel_coords[j])<=pow(2,0.5) and skel_coords[i][2]>=skel_coords[j][2]):
+            if(i<j and euclidean_distance_in_pixels(skel_coords[i],skel_coords[j])<=pow(2,0.5) and skel_coords[i][2]>=skel_coords[j][2]):
                 items_to_remove.append(skel_coords[j])    
 
 
     return list(((x[0],x[1]) for x in skel_coords if x not in items_to_remove))
   
 #find the distantes of the joints, return a matrix of [jointA, jointB,[pixelesbetweenthem], distance in pixel]
-def find_distances(skeleton, joints,final_image_meshes):    
+def find_distances(skeleton, joints,final_image_meshes,real_distance_x_per_pixel, real_distance_y_per_pixel):    
     distances = []
            
     for j in joints:              
@@ -202,6 +211,7 @@ def find_distances(skeleton, joints,final_image_meshes):
             final_point = None
             joint_reached = False
             distance_in_pixels = 0
+            distance_in_nanometers = 0
 
             while(len(find_neighbours(skeleton,next_point,this_branch_points,final_image_meshes))>0 and not joint_reached):
                 old_next_point = next_point
@@ -211,13 +221,15 @@ def find_distances(skeleton, joints,final_image_meshes):
                 if next_point in joints:
                     joint_reached = True
                 
-                distance_in_pixels = distance_in_pixels + euclidean_distance(old_next_point,next_point)
+                distance_in_pixels = distance_in_pixels + euclidean_distance_in_pixels(old_next_point,next_point)
+                distance_in_nanometers = distance_in_nanometers+ euclidean_distance_in_real(old_next_point,next_point,real_distance_x_per_pixel, real_distance_y_per_pixel)
+
                 final_point = next_point
                
 
             #not add if the oposite relation already exists       
             if(final_point is not None and not any(x[1] == j and x[0]==final_point for x in distances)):
-                distances.append([j,final_point,this_branch_points,distance_in_pixels])                   
+                distances.append([j,final_point,this_branch_points,distance_in_pixels,distance_in_nanometers])                   
                     
     return distances
 
@@ -311,13 +323,13 @@ def find_meshes(final_contours):
     return meshes
 
 
-def paint_graph(img,graph,distance_per_pixel):
+def paint_graph(img,graph):
     for line in graph:
         #paint the lenght in the middle        
         for p in line[2]:
-            img[p[0],p[1]] = 0
+            img[p[0],p[1]] = [255, 115, 0]
 
-        cv2.circle(img, (line[0][1],line[0][0]), 5, (0, 0, 0))
+        cv2.circle(img, (line[0][1],line[0][0]), 5, (0,0,255))
     
 
 def paint_areas(img,contours):    
@@ -327,7 +339,7 @@ def paint_areas(img,contours):
         box = cv2.boxPoints(box)
         box = np.array(box, dtype="int")    
 
-        random_color = 255
+        random_color = 230
         
         color = (random_color,random_color,random_color)
 
@@ -340,9 +352,16 @@ def paint_areas(img,contours):
             divisor=1
         cx = int(m['m10']/divisor)
         cy = int(m['m01']/divisor)    
-           
-        cv2.putText(img, "{:.1f}".format(cv2.contourArea(c)),(cx,cy ), cv2.FONT_HERSHEY_SIMPLEX,1, (255,255,255), 1)
 
-def euclidean_distance(coordinate1, coordinate2):
+        text = str(int(cv2.contourArea(c)))
+        textsize = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1, 1)[0]
+        textsize_width_halved = int(textsize[0]/2)
+        textsize_heigth_halved = int(textsize[1]/2)
+           
+        cv2.putText(img, text,(cx-textsize_width_halved,cy+textsize_heigth_halved), cv2.FONT_HERSHEY_SIMPLEX,0.9, (30,30,30), 1)
+
+def euclidean_distance_in_pixels(coordinate1, coordinate2):
     return pow(pow(coordinate1[0] - coordinate2[0], 2) + pow(coordinate1[1] - coordinate2[1], 2), .5)
         
+def euclidean_distance_in_real(coordinate1, coordinate2, real_distance_x_per_pixel, real_distance_y_per_pixel):
+    return pow(pow((coordinate1[0] - coordinate2[0])*real_distance_x_per_pixel, 2) + pow((coordinate1[1] - coordinate2[1])*real_distance_y_per_pixel, 2), .5)
