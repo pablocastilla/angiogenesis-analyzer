@@ -31,6 +31,10 @@ for file in os.listdir("./videos"):
 
 #for each tif file create the result folder and csv
 for file_name in file_names:
+    if(file_name == '12_24_48_angioE02.tif'):
+        continue
+
+    print ('processing '+ file_name)
 
     tiff = tc.opentiff('videos\\'+file_name)
 
@@ -43,7 +47,7 @@ for file_name in file_names:
         filewriter.writerow(['frame', 'number_of_joints','number_of_meshes','total_meshes_area_pixels','total_meshes_area_nm','average_meshes_area_pixels','average_meshes_area_nm',
                                 'number_of_segments','total_segments_length_pixels','total_segments_length_nm'])
 
-        index=0
+        index=1
         #for each frame
         for img in tiff:       
             start_time = time.time()

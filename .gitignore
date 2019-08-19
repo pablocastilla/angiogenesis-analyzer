@@ -1,7 +1,9 @@
 /venv
-/videos
-/analysis
+/videos/*
+!/videos/12_24_48_angioE02.tif
+/analyses/*
+!/analyses/12_24_48_angioE02.tif_result.csv
+!/analyses/12_24_48_angioE02.tif_imagelog
 /__pycache__
 /build
 /dist
-/analyses

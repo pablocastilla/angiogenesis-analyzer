@@ -13,9 +13,11 @@ MIN_CONTOUR_AREA = 1000
 MAX_CONTOUR_AREA = 100000
 ADAPTATIVE_THRESHOLD_BLOCK_SIZE = 3
 ADAPTATIVE_THRESHOLD_C = 1
-CANNY_THRESHOLD = 50
+CANNY_UPPER_THRESHOLD = 50
+CANNY_LOWER_THRESHOLD = 50
 SECTIONS_FOR_FINDING_BRIGHTEDGES=7
-VARIANCE_IN_COLORS_THRESHOLD = 17
+VARIANCE_IN_COLORS_THRESHOLD = 10
+CONTOURS_PER_AREA = 0.028
 
 #process a single frame
 def process_frame(img, resize_factor, real_distance_x, real_distance_y):
@@ -64,15 +66,15 @@ def image_with_sections_contounered_in_cicle(img):
 
     img = cv2.multiply(img, circle_image_mask)
 
-    edges = cv2.Canny(img,CANNY_THRESHOLD,CANNY_THRESHOLD)
+    edges = cv2.Canny(img,CANNY_LOWER_THRESHOLD,CANNY_UPPER_THRESHOLD)
     final_sobely = np.uint8(edges)
     final_image = np.zeros([img.shape[0],img.shape[1],1], dtype=np.uint8)
     thresh_gaussian = cv2.adaptiveThreshold(final_sobely,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,ADAPTATIVE_THRESHOLD_BLOCK_SIZE,ADAPTATIVE_THRESHOLD_C)
-    (contours,_) = cv2.findContours(thresh_gaussian,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+    (contours,hierarchy) = cv2.findContours(thresh_gaussian,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
 
     contours = [c for c in contours if cv2.contourArea(c) > MIN_CONTOUR_AREA ] #remove smalls
        
-    final_contours = [contour_validation(img,idx,c,inverted_circle_image_mask) for idx,c in enumerate(contours)]
+    final_contours = [contour_validation(img,idx,c,inverted_circle_image_mask,thresh_gaussian) for idx,c in enumerate(contours)]
 
     inner_holes = [c[0] for c in final_contours if c[1]]
     cv2.drawContours(final_image, inner_holes, -1, (255), 1)
@@ -89,7 +91,7 @@ def image_with_sections_contounered_in_cicle(img):
 
 #http://opencvpython.blogspot.com/2012/06/contours-3-extraction.html
 #false if it is not "microscope background", if so it has more son contours because of the strange forms
-def contour_validation(img,idx,contour,inverted_circle_image_mask):
+def contour_validation(img,idx,contour,inverted_circle_image_mask, thresh_gaussian):
 
     validated = True
     area = cv2.contourArea(contour)
@@ -118,8 +120,23 @@ def contour_validation(img,idx,contour,inverted_circle_image_mask):
 
     variance = math.sqrt(np.var(colors))
 
-    if(variance>VARIANCE_IN_COLORS_THRESHOLD):       
-        validated = False  
+    #b_hist = cv2.calcHist(np.array(colors), [0], None, [256], (0, 256), accumulate=False)
+
+    #if variance abouve threshold study the countour
+    if(variance>VARIANCE_IN_COLORS_THRESHOLD):             
+        rect = cv2.boundingRect(contour)
+        x,y,w,h = rect
+
+        contour_copied = np.zeros((h,w ), dtype=np.uint8)  
+
+        for i in range(w):
+            for j in range(h):
+                contour_copied[j,i] = thresh_gaussian[y+j,x+i]
+
+        (contours,_) = cv2.findContours(contour_copied,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+
+        if(CONTOURS_PER_AREA<len(contours)/area):
+            validated = False  
         
     return (contour,validated)
 
@@ -365,3 +382,4 @@ def euclidean_distance_in_pixels(coordinate1, coordinate2):
         
 def euclidean_distance_in_real(coordinate1, coordinate2, real_distance_x_per_pixel, real_distance_y_per_pixel):
     return pow(pow((coordinate1[0] - coordinate2[0])*real_distance_x_per_pixel, 2) + pow((coordinate1[1] - coordinate2[1])*real_distance_y_per_pixel, 2), .5)
+
