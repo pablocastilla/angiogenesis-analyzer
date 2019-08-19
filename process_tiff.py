@@ -48,12 +48,11 @@ for file_name in file_names:
                                 'number_of_segments','total_segments_length_pixels','total_segments_length_nm'])
 
         index=1
-        #for each frame
+        #for each frame process it and save the result and the log images
         for img in tiff:       
             start_time = time.time()
             print('start frame:'+str(index) )
                 
-
             result = sku.process_frame(img,RESIZE_FACTOR,REAL_DISTANCE_X,REAL_DISTANCE_Y)
                    
             cv2.imwrite(log_folder_name+'\\frame'+str(index)+'_processed.jpg',result[0])                 

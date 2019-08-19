@@ -1,7 +1,27 @@
 # Angiogenesis analyzer
 This project is done for the Biomedicine, Biotechnology and Public Healthcare of the University of Cádiz. They idea is to automatize the processing of the microscopic images of their experiments related to angiogenesis.
 
-Do you want to automate some image analyses? Contact me through [LinkedIn](https://www.linkedin.com/in/pablocastilla) and let's talk.
+- The microscope takes images in a defined interval and are stored in a tif file,the images look like this one:
+![original image](assets\28052019_angioE02_page_0012.jpg)
+
+- The code takes the tif file and process the image returning the following images:
+    ![processed on original](assets\frame1_processed.jpg)
+    ![bit image](assets\frame1_processed_bits.jpg)
+
+   - A csv with the results showing:
+      - frame
+      - number of joints
+      - number of meshes
+      - total meshes area in pixels
+      - total meshes area in nm
+      - average meshes area in pixels
+      - average meshes area in nm
+      - number of segments
+      - total segments length in pixels
+      - total segments length in nm
+
+
+Do you want to automate your image analyses? Contact me through [LinkedIn](https://www.linkedin.com/in/pablocastilla) and let's talk.
 
 ## Use the program
 1. Go to [releases](https://github.com/pablocastilla/angiogenesis-analyzer/releases/) and grab the latest one. 

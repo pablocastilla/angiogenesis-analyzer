@@ -120,7 +120,7 @@ def contour_validation(img,idx,contour,inverted_circle_image_mask, thresh_gaussi
 
     variance = math.sqrt(np.var(colors))
 
-    #b_hist = cv2.calcHist(np.array(colors), [0], None, [256], (0, 256), accumulate=False)
+    
 
     #if variance abouve threshold study the countour
     if(variance>VARIANCE_IN_COLORS_THRESHOLD):             
@@ -135,8 +135,14 @@ def contour_validation(img,idx,contour,inverted_circle_image_mask, thresh_gaussi
 
         (contours,_) = cv2.findContours(contour_copied,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
 
-        if(CONTOURS_PER_AREA<len(contours)/area):
+        contour_per_area = len(contours)/area
+
+        #print(str(area)+'  :  '+str(contour_per_area)+'  :  '+str(variance))
+
+        if(CONTOURS_PER_AREA<contour_per_area):
             validated = False  
+        #else:
+        #    print(str(area)+':'+str(contour_per_area))
         
     return (contour,validated)
 
@@ -186,7 +192,7 @@ def skeletonize(img):
 
     return skeleton
 
-#find the joints in a skeleton looking for pixels that are sorounded by 3 or more pixels
+#find the joints in a skeleton looking for pixels that are surrounded by 3 or more pixels
 def find_joints(skeleton_image,final_image_meshes):
     # Find row and column locations that are non-zero
     (rows,cols) = np.nonzero(skeleton_image)
@@ -214,7 +220,7 @@ def find_joints(skeleton_image,final_image_meshes):
 
     return list(((x[0],x[1]) for x in skel_coords if x not in items_to_remove))
   
-#find the distantes of the joints, return a matrix of [jointA, jointB,[pixelesbetweenthem], distance in pixel]
+#find the distantes of the joints, return a matrix of [jointA, jointB,[pixelesbetweenthem], distance in pixel, distance_in_nanometers]
 def find_distances(skeleton, joints,final_image_meshes,real_distance_x_per_pixel, real_distance_y_per_pixel):    
     distances = []
            
