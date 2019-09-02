@@ -28,10 +28,8 @@ steps:
     pyinstaller --onefile --console process_tiff.py    
   displayName: 'pyinstaller'
 
-- task: DownloadPipelineArtifact@2
+- task: DownloadBuildArtifacts@0
   inputs:
-    buildType: 'specific'
-    project: '939a83e1-ebae-4c89-be8e-d8e22d4b82a7'
-    definition: '2'
-    buildVersionToDownload: 'latest'
-    targetPath: '$(Pipeline.Workspace)'
+    buildType: 'current'
+    downloadType: 'specific'
+    downloadPath: '$(System.ArtifactsDirectory)'
