@@ -52,4 +52,4 @@ Do you want to automate your image analyses? Contact me through [LinkedIn](https
 From the terminal with the environment activated type
 - pyinstaller --onefile process_tiff.py
 
-
+[![Build Status](https://pablocastilla.visualstudio.com/angiogenesis-analyzer/_apis/build/status/pablocastilla.angiogenesis-analyzer?branchName=master)](https://pablocastilla.visualstudio.com/angiogenesis-analyzer/_build/latest?definitionId=2&branchName=master)
