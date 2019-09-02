@@ -31,7 +31,7 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
   inputs:
-    SourceFolder: '$(Agent.BuildDirectory)'
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
     Contents: '**\process_tiff\**'
     TargetFolder: '$(build.artifactstagingdirectory)'
 
