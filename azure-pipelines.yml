@@ -25,7 +25,7 @@ steps:
   displayName: 'Install dependencies'
 
 - script: |
-    pyinstaller --onefile --console process_tiff.py    
+    pyinstaller --onefile --windowed process_tiff.py    
   displayName: 'pyinstaller'
 
 - task: CopyFiles@2
