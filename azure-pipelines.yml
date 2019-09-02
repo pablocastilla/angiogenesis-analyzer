@@ -32,7 +32,7 @@ steps:
   displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
   inputs:
     SourceFolder: '$(build.sourcesdirectory)'
-    Contents: '**\process_tiff\$(buildConfiguration)\**'
+    Contents: '**\dist\**'
     TargetFolder: '$(build.artifactstagingdirectory)'
 
 - task: PublishBuildArtifacts@1
