@@ -31,8 +31,8 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
   inputs:
-    SourceFolder: '$(build.sourcesdirectory)'
-    Contents: '**/*'
+    SourceFolder: '$(Agent.BuildDirectory)'
+    Contents: '**\process_tiff\**'
     TargetFolder: '$(build.artifactstagingdirectory)'
 
 - task: PublishBuildArtifacts@1
