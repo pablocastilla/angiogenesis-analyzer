@@ -4,7 +4,7 @@ decorator==4.4.0
 future==0.17.1   
 imageio==2.5.0    
 kiwisolver==1.1.0    
-matplotlib==3.1.1    
+matplotlib>=3.1.1    
 networkx==2.3      
 numpy==1.16.4   
 opencv-contrib-python==4.1.0.25 
