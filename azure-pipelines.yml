@@ -28,8 +28,14 @@ steps:
     pyinstaller --onefile --console process_tiff.py    
   displayName: 'pyinstaller'
 
-- task: DownloadBuildArtifacts@0
+- task: CopyFiles@2
+  displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
   inputs:
-    buildType: 'current'
-    downloadType: 'specific'
-    downloadPath: '$(System.ArtifactsDirectory)'
+    SourceFolder: '$(build.sourcesdirectory)'
+    Contents: '**\process_tiff\$(buildConfiguration)\**'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
