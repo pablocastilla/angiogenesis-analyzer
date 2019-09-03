@@ -42,7 +42,7 @@ steps:
   displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
   inputs:
     SourceFolder: '$(build.sourcesdirectory)'
-    Contents: '**/*'
+    Contents: '**/dist/*'
     TargetFolder: '$(build.artifactstagingdirectory)'
 
 - task: PublishBuildArtifacts@1
