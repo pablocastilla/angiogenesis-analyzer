@@ -24,12 +24,19 @@ steps:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
 
-- script: |
+- script:
     python -m pip install --upgrade pip
     pip install --user -r final-requirements.txt
+  condition: eq($(imageName), 'vs2017-win2016')
   displayName: 'Install dependencies'
 
-- script: |
+- script:
+    python -m pip install --upgrade pip
+    pip install -r final-requirements.txt
+  condition: eq($(imageName), 'macos-10.13')
+  displayName: 'Install dependencies'
+
+- script:
     pyinstaller --onefile --windowed process_tiff.py    
   displayName: 'pyinstaller'
 
