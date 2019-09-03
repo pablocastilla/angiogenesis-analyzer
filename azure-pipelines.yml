@@ -35,8 +35,14 @@ steps:
   displayName: 'Install dependencies mac'
 
 - script:
-    pyinstaller --onefile --windowed process_tiff.py    
-  displayName: 'pyinstaller'
+    pyinstaller --onefile --windowed process_tiff.py   
+  condition:  eq(variables['imageName'], 'macos-10.13') 
+  displayName: 'pyinstaller mac'
+
+- script:
+    pyinstaller --onefile process_tiff.py   
+  condition: eq(variables['imageName'], 'vs2017-win2016')
+  displayName: 'pyinstaller windows'
 
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
