@@ -27,14 +27,14 @@ steps:
 - script:
     python -m pip install --upgrade pip
     pip install --user -r final-requirements.txt
-  condition: eq($(imageName), 'vs2017-win2016')
-  displayName: 'Install dependencies'
+  condition: eq('${{imageName}}', 'vs2017-win2016')
+  displayName: 'Install dependencies windows'
 
 - script:
     python -m pip install --upgrade pip
     pip install -r final-requirements.txt
-  condition: eq($(imageName), 'macos-10.13')
-  displayName: 'Install dependencies'
+  condition:  eq('${{imageName}}', 'macos-10.13')
+  displayName: 'Install dependencies mac'
 
 - script:
     pyinstaller --onefile --windowed process_tiff.py    
