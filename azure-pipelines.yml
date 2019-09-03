@@ -24,14 +24,12 @@ steps:
     versionSpec: '$(python.version)'
   displayName: 'Use Python $(python.version)'
 
-- script:
-    python -m pip install --upgrade pip
+- script:   
     pip install --user -r final-requirements.txt
   condition: eq(variables['imageName'], 'vs2017-win2016')
   displayName: 'Install dependencies windows'
 
-- script:
-    python -m pip install --upgrade pip
+- script:    
     pip install -r final-requirements.txt
   condition:  eq(variables['imageName'], 'macos-10.13')
   displayName: 'Install dependencies mac'
