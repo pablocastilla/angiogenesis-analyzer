@@ -35,12 +35,12 @@ steps:
   displayName: 'Install dependencies mac'
 
 - script:
-    pyinstaller --onefile --windowed process_tiff.py   
+    pyinstaller --onefile --windowed process_tiff.spec   
   condition:  eq(variables['imageName'], 'macos-10.13') 
   displayName: 'pyinstaller mac'
 
 - script:
-    pyinstaller --onefile process_tiff.py   
+    pyinstaller --onefile process_tiff.spec   
   condition: eq(variables['imageName'], 'vs2017-win2016')
   displayName: 'pyinstaller windows'
 
