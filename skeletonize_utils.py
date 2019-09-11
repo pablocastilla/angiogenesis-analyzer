@@ -20,7 +20,7 @@ VARIANCE_IN_COLORS_THRESHOLD = 10
 CONTOURS_PER_AREA = 0.028
 
 #process a single frame
-def process_frame(img, resize_factor, real_distance_x, real_distance_y):
+def process_frame(img, resize_factor, real_distance_x, real_distance_y, create_circle : True):
     image_width=int(img.shape[1]/resize_factor)
     image_height=int(img.shape[0]/resize_factor)
     img = cv2.resize(img,(image_width,image_height))
@@ -30,7 +30,7 @@ def process_frame(img, resize_factor, real_distance_x, real_distance_y):
     real_distance_y_per_pixel = real_distance_y / image_height
     pixel_surface = real_distance_x_per_pixel * real_distance_y_per_pixel
 
-    final_image_bit,final_contours,final_image_meshes = image_with_sections_contounered_in_cicle(img)
+    final_image_bit,final_contours,final_image_meshes = image_with_sections_contounered_in_cicle(img, create_circle)
 
     skeleton = skeletonize(final_image_bit)
 
@@ -59,9 +59,16 @@ def process_frame(img, resize_factor, real_distance_x, real_distance_y):
 
     
 #takes the image, finds the circle containing the experiment and the contours
-def image_with_sections_contounered_in_cicle(img):     
+def image_with_sections_contounered_in_cicle(img, create_circle : True):     
 
-    circle_image_mask = create_internal_circle_mask(img)
+    image_width=int(img.shape[1])
+    image_height=int(img.shape[0])
+
+    if(create_circle):
+        circle_image_mask = create_internal_circle_mask(img)
+    else:
+        circle_image_mask = np.ones((image_height,image_width ), dtype=np.uint8)       
+
     inverted_circle_image_mask = np.logical_not(circle_image_mask)    
 
     img = cv2.multiply(img, circle_image_mask)

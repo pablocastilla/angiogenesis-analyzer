@@ -31,12 +31,21 @@ for file in os.listdir("./videos"):
 
 #for each tif file create the result folder and csv
 for file_name in file_names:
-    if(file_name == '12_24_48_angioE02.tif'):
-        continue
+    #if(file_name == '12_24_48_angioE02.tif'):
+    #    continue
 
     print ('processing '+ file_name)
 
     tiff = tc.opentiff('videos\\'+file_name)
+
+    make_circle = True
+
+    if(tiff.length==0):
+        tiffaux=[]
+        gray_image = cv2.cvtColor(tiff.retrieve()[1], cv2.COLOR_BGR2GRAY)
+        tiffaux.append(gray_image)
+        tiff=tiffaux
+        make_circle = False
 
     log_folder_name='analyses\\'+file_name+'_imagelog'
     if not os.path.exists(log_folder_name):
@@ -53,7 +62,7 @@ for file_name in file_names:
             start_time = time.time()
             print('start frame:'+str(index) )
                 
-            result = sku.process_frame(img,RESIZE_FACTOR,REAL_DISTANCE_X,REAL_DISTANCE_Y)
+            result = sku.process_frame(img,RESIZE_FACTOR,REAL_DISTANCE_X,REAL_DISTANCE_Y,make_circle)
                    
             cv2.imwrite(log_folder_name+'\\frame'+str(index)+'_processed.jpg',result[0])                 
             final_image_bit_aux = np.uint8(skimage.img_as_bool(result[10]))*255
