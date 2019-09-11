@@ -52,6 +52,6 @@ Do you want to automate your image analyses? Contact me through [LinkedIn](https
 
 ### Create executable
 From the terminal with the environment activated type
-- pyinstaller --onefile process_tiff.py
+- pyinstaller --onefile process_tiff.spec
 - If distributables doesn't work and you have a mac you can try [platypus](https://sveinbjorn.org/platypus) 
 
