@@ -1,12 +1,14 @@
+[![Build Status](https://pablocastilla.visualstudio.com/angiogenesis-analyzer/_apis/build/status/pablocastilla.angiogenesis-analyzer?branchName=master)](https://pablocastilla.visualstudio.com/angiogenesis-analyzer/_build/latest?definitionId=2&branchName=master)
+
 # Angiogenesis analyzer
 This project is done for the Biomedicine, Biotechnology and Public Healthcare of the University of Cádiz. They idea is to automatize the processing of the microscopic images of their experiments related to angiogenesis.
 
 - The microscope takes images in a defined interval and are stored in a tif file,the images look like this one:
-![original image](assets\28052019_angioE02_page_0012.jpg)
+![original image](assets/28052019_angioE02_page_0012.jpg)
 
 - The code takes the tif file and process the image returning the following images:
-    ![processed on original](assets\frame1_processed.jpg)
-    ![bit image](assets\frame1_processed_bits.jpg)
+    ![processed on original](assets/frame1_processed.jpg)
+    ![bit image](assets/frame1_processed_bits.jpg)
 
    - A csv with the results showing:
       - frame
@@ -51,5 +53,5 @@ Do you want to automate your image analyses? Contact me through [LinkedIn](https
 ### Create executable
 From the terminal with the environment activated type
 - pyinstaller --onefile process_tiff.py
-
+- If distributables doesn't work and you have a mac you can try [platypus](https://sveinbjorn.org/platypus) 
 

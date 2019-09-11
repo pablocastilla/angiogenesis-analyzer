@@ -1,0 +1,57 @@
+# Python package
+# Create and test a Python package on multiple Python versions.
+# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
+trigger:
+- master
+
+strategy:
+  matrix:
+    mac:
+      python.version: '3.7'
+      imageName: 'macos-10.13'
+    windows:
+      python.version: '3.7'
+      imageName: 'vs2017-win2016'
+
+pool:
+  vmImage: $(imageName)
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(python.version)'
+  displayName: 'Use Python $(python.version)'
+
+- script:   
+    pip install --user -r final-requirements.txt
+  condition: eq(variables['imageName'], 'vs2017-win2016')
+  displayName: 'Install dependencies windows'
+
+- script:    
+    pip install -r final-requirements.txt
+  condition:  eq(variables['imageName'], 'macos-10.13')
+  displayName: 'Install dependencies mac'
+
+- script:
+    pyinstaller --onefile --windowed process_tiff.py   
+  condition:  eq(variables['imageName'], 'macos-10.13') 
+  displayName: 'pyinstaller mac'
+
+- script:
+    pyinstaller --onefile process_tiff.py   
+  condition: eq(variables['imageName'], 'vs2017-win2016')
+  displayName: 'pyinstaller windows'
+
+- task: CopyFiles@2
+  displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
+  inputs:
+    SourceFolder: '$(build.sourcesdirectory)'
+    Contents: '**/dist/**'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
