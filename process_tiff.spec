@@ -31,3 +31,12 @@ exe = EXE(pyz,
           upx_exclude=[],
           runtime_tmpdir=None,
           console=True )
+
+app = BUNDLE(exe,
+         name='process_tiff.app',
+         icon=None,
+         bundle_identifier=None
+         info_plist={
+            'NSHighResolutionCapable': 'True'
+            },
+         )
