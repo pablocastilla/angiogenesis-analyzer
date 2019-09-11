@@ -10,7 +10,7 @@ strategy:
   matrix:
     mac:
       python.version: '3.7'
-      imageName: 'macos-10.13'
+      imageName: 'macos-10.15'
     windows:
       python.version: '3.7'
       imageName: 'vs2017-win2016'
@@ -31,12 +31,12 @@ steps:
 
 - script:    
     pip install -r final-requirements.txt
-  condition:  eq(variables['imageName'], 'macos-10.13')
+  condition:  eq(variables['imageName'], 'macos-10.15')
   displayName: 'Install dependencies mac'
 
 - script:
     pyinstaller --onefile --windowed process_tiff.spec   
-  condition:  eq(variables['imageName'], 'macos-10.13') 
+  condition:  eq(variables['imageName'], 'macos-10.15') 
   displayName: 'pyinstaller mac'
 
 - script:
@@ -49,7 +49,7 @@ steps:
   inputs:
     SourceFolder: '$(build.sourcesdirectory)'
     Contents: '**/dist/**'
-    TargetFolder: '$(build.artifactstagingdirectory)'
+    TargetFolder: "$(build.artifactstagingdirectory)/variables['imageName']"
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact: drop'
