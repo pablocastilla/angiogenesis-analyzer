@@ -26,7 +26,7 @@ a = Analysis(['process_tiff.py'],
              excludes=[],
             )
 
-a.datas += Tree('./scipy-extra-dll', prefix=None)
+#a.datas += Tree(os.environ['appdata']+'/venv/Lib/site-packages/scipy/extra-dll', prefix=None)
 
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
